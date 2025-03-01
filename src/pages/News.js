@@ -12,7 +12,6 @@ function News() {
         fetchNews();
     }, []);
 
-    // ✅ **Функція отримання новин**
     async function fetchNews() {
         try {
             const response = await fetch("http://localhost/api/news", {
@@ -68,10 +67,8 @@ function News() {
                     <span>📬</span> News on the site <span>📬</span>
                 </div>
 
-                {/* ✅ **Відображення помилки, якщо новини не завантажені** */}
                 {error && <p className="error-message">{error}</p>}
 
-                {/* ✅ **Таблиця новин** */}
                 <div className="news-table">
                     <div className="news-table-header">
                         <div className="news-row">Date</div>

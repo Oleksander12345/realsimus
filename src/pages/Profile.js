@@ -25,18 +25,15 @@ function Profile() {
 
     if (token) {
       const userRole = extractRoleFromToken(token);
-      console.log("✅ User role extracted:", userRole);
       setRole(userRole);
     }
   }, []);
 
   const extractRoleFromToken = (token) => {
       try {
-          const payloadBase64 = token.split(".")[1]; // Отримуємо payload (Base64)
-          const decodedPayload = JSON.parse(atob(payloadBase64)); // Декодуємо Base64
-          console.log("🔍 Decoded payload:", decodedPayload);
+          const payloadBase64 = token.split(".")[1];
+          const decodedPayload = JSON.parse(atob(payloadBase64));
 
-          // Перевіряємо, чи є масив `roles` і чи містить він "ADMIN"
           return decodedPayload.roles && decodedPayload.roles.includes("ADMIN") ? "ADMIN" : "USER";
       } catch (error) {
           console.error("❌ Error decoding token:", error);
@@ -44,9 +41,6 @@ function Profile() {
       }
   };
 
-
-
-  // ✅ **Функція отримання профілю користувача**
   const fetchUserProfile = async () => {
     try {
       const response = await fetch("http://localhost/api/auth/profile", {
@@ -62,17 +56,14 @@ function Profile() {
       }
 
       const data = await response.json();
-      console.log("📌 Отримані дані профілю:", data);
       setUsername(data.username);
       setEmail(data.email);
       setBalance(data.balance ? `$${data.balance.toFixed(2)}` : "$0.00");
     } catch (error) {
-      console.error("❌ Помилка отримання профілю:", error.message);
       setBalance("N/A");
     }
   };
 
-  // ✅ **Функція отримання телефонних номерів користувача**
   const fetchUserPhoneNumbers = async () => {
     try {
       const response = await fetch("http://localhost/api/auth/my-phone-numbers", {
@@ -88,48 +79,57 @@ function Profile() {
       }
 
       const data = await response.json();
-      console.log("📌 Отримані номери:", data);
       setPhoneNumbers(data);
     } catch (error) {
-      console.error("❌ Помилка отримання номерів:", error.message);
     }
   };
 
-  // ✅ **Функція отримання транзакцій**
   const fetchUserTransactions = async () => {
     try {
-      const response = await fetch(
-        `http://localhost/api/cryptocloud/payments/user-transactions`,
-        {
-          method: "GET",
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
+        const username = localStorage.getItem("username");
+        if (!username) {
+            console.error("❌ Username not found in local storage.");
+            setTransactions([]);
+            return;
         }
-      );
 
-      if (!response.ok) {
-        throw new Error("❌ Failed to fetch transactions.");
-      }
+        const apiUrl = `http://localhost/api/cryptocloud/payments/user-transactions?username=${username}`;
 
-      const data = await response.json();
-      console.log("📌 Отримані транзакції:", data);
-      setTransactions(data);
+        const response = await fetch(apiUrl, {
+            method: "GET",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "❌ Failed to fetch transactions.");
+        }
+
+        const data = await response.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+            console.warn("⚠ No transactions found.");
+            setTransactions([]); 
+            return;
+        }
+
+        setTransactions(data); 
+
     } catch (error) {
-      console.error("❌ Помилка отримання транзакцій:", error.message);
+        setMessage(error.message || "Internal server error occurred.");
     }
-  };
+};
 
-  // ✅ **Функція передачі номера іншому користувачеві**
   const transferPhoneNumberToUser = async () => {
     if (!recipientUsername || !transferPhoneNumber) {
-      setMessage("❌ Введіть всі дані для передачі номера.");
+      setMessage("❌ Enter all the data to transfer the number.");
       return;
     }
 
     try {
-      console.log("📌 Надсилаємо запит на передачу номера...");
       const response = await fetch("http://localhost/admin/transfer-number", {
         method: "PUT",
         headers: {
@@ -140,16 +140,14 @@ function Profile() {
       });
 
       if (!response.ok) {
-        throw new Error("❌ Не вдалося передати номер.");
+        throw new Error("❌ I couldn't get the number.");
       }
 
       const data = await response.json();
-      console.log("✅ Номер передано успішно:", data);
-      setMessage(`✅ Номер ${transferPhoneNumber} передано користувачу ${recipientUsername}.`);
+      setMessage(`✅ Номер ${transferPhoneNumber} transferred to the user ${recipientUsername}.`);
 
-      fetchUserPhoneNumbers(); // Оновлюємо список номерів після передачі
+      fetchUserPhoneNumbers();
     } catch (error) {
-      console.error("❌ Помилка передачі номера:", error.message);
       setMessage(error.message);
     }
   };
@@ -164,7 +162,6 @@ function Profile() {
         <div className="profile-logo">📱 Realsimus</div>
         <h1 className="profile-title">Profile</h1>
 
-        {/* Кнопка адміністратора (з'являється тільки для ADMIN) */}
         {roles === "ADMIN" ? (
           <button className="profile-admin-button" onClick={() => navigate("/admin")}>
             ⭐ Admin Panel

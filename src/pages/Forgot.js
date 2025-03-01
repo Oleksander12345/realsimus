@@ -1,14 +1,13 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ⬅️ Імпортуємо useNavigate
+import { useNavigate } from "react-router-dom";
 
 function Forgot() {
     const [email, setEmail] = useState("");
     const [message, setMessage] = useState("");
-    const [messageType, setMessageType] = useState(""); // success або error
-    const navigate = useNavigate(); // ⬅️ Ініціалізуємо navigate
+    const [messageType, setMessageType] = useState("");
+    const navigate = useNavigate();
 
 
-    // ✅ **Функція відправки запиту на скидання пароля**
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -30,7 +29,6 @@ function Forgot() {
             if (data.success) {
                 showMessage(`A password reset link has been sent to ${email}.`, "success");
                     
-                // ✅ Перенаправлення на сторінку логіну через 5 секунд
                 setTimeout(() => {
                     navigate("/login");
                 }, 5000);
@@ -43,11 +41,10 @@ function Forgot() {
         }
     };
 
-    // ✅ **Функція показу повідомлень**
     const showMessage = (msg, type) => {
         setMessage(msg);
         setMessageType(type);
-        setTimeout(() => setMessage(""), 3500); // Ховаємо повідомлення через 5 сек
+        setTimeout(() => setMessage(""), 3500);
     };
     const NavigateToLogin = () => {
         setTimeout(navigate("/login"), 10000)
@@ -66,7 +63,6 @@ function Forgot() {
                 <div className="registration-container">
                     <h2 className="registration-title">Enter your data</h2>
 
-                    {/* ✅ Повідомлення про успіх або помилку */}
                     {message && (
                         <p className={`message ${messageType === "success" ? "success" : "error"}`}>
                             {message}

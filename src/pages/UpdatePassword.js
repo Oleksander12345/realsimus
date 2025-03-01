@@ -5,15 +5,14 @@ function UpdatePassword() {
     const navigate = useNavigate();
     const location = useLocation();
     const queryParams = new URLSearchParams(location.search);
-    const resetToken = queryParams.get("token"); // Отримуємо токен зі строки запиту
+    const resetToken = queryParams.get("token");
 
     const [email, setEmail] = useState("");
     const [newPassword, setNewPassword] = useState("");
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
-    const [messageType, setMessageType] = useState(""); // success або error
+    const [messageType, setMessageType] = useState("");
 
-    // ✅ **Функція обробки оновлення пароля**
     const handlePasswordReset = async (e) => {
         e.preventDefault();
 
@@ -39,7 +38,6 @@ function UpdatePassword() {
             const data = await response.json();
             showMessage("✅ Password updated successfully!", "success");
 
-            // ✅ Перенаправлення на логін через 5 секунд
             setTimeout(() => navigate("/login"), 5000);
         } catch (error) {
             console.error("❌ Error updating password:", error);
@@ -47,11 +45,10 @@ function UpdatePassword() {
         }
     };
 
-    // ✅ **Функція показу повідомлень**
     const showMessage = (msg, type) => {
         setMessage(msg);
         setMessageType(type);
-        setTimeout(() => setMessage(""), 5000); // Ховаємо через 5 сек
+        setTimeout(() => setMessage(""), 5000);
     };
 
     return (
@@ -67,7 +64,6 @@ function UpdatePassword() {
                 <div className="update-container">
                     <h2 className="update-title">Enter new password</h2>
 
-                    {/* ✅ Повідомлення про успіх або помилку */}
                     {message && (
                         <p className={`message ${messageType === "success" ? "success" : "error"}`}>
                             {message}

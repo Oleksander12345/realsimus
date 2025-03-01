@@ -33,7 +33,6 @@ function CreateNews() {
         }
     }, []);
 
-    // ✅ **Функція розшифровки ролі**
     const extractRoleFromToken = (token) => {
         try {
             const payloadBase64 = token.split(".")[1];
@@ -45,7 +44,6 @@ function CreateNews() {
         }
     };
 
-    // ✅ **Функція отримання списку новин**
     async function fetchNews() {
         try {
             const response = await fetch("http://localhost/api/news", {
@@ -62,8 +60,7 @@ function CreateNews() {
             }
     
             const data = JSON.parse(text);
-            console.log("✅ News fetched successfully:", data);
-            setNews(data);  // ✅ Оновлюємо стан новин
+            setNews(data);
         } catch (error) {
             console.error("❌ Error fetching news:", error.message);
         }
@@ -72,16 +69,15 @@ function CreateNews() {
     
     
 
-    // ✅ **Функція створення новини**
     const createNews = async () => {
         if (!newsMessage.trim()) {
             setError("❌ Please enter a news message.");
-            clearMessage();
+            clearMessage(setError);
             return;
         }
         if (newsMessage.length > maxCharacters) {
             setError(`❌ Text is too long. Maximum ${maxCharacters} characters allowed.`);
-            clearMessage();
+            clearMessage(setError);
             return;
         }
     
@@ -98,19 +94,19 @@ function CreateNews() {
             if (!response.ok) throw new Error("❌ Failed to create news.");
     
             setSuccess("✅ News created successfully!");
+            clearMessage(setSuccess);
             setNewsMessage("");
     
-            await fetchNews();  // ✅ Оновлюємо список новин після створення
+            await fetchNews();
         } catch (err) {
             setError(err.message);
         }
     };
 
-    // ✅ **Функція видалення новини**
     const deleteNews = async () => {
         if (!newsId || isNaN(Number(newsId))) {
             setError("❌ Please enter a valid numeric ID.");
-            clearMessage();
+            clearMessage(setError);
             return;
         }
 
@@ -123,9 +119,9 @@ function CreateNews() {
             if (!response.ok) throw new Error("❌ Failed to delete news.");
 
             setSuccess("✅ News deleted successfully!");
-            clearMessage();
+            clearMessage(setSuccess);
             setNewsId("");
-            fetchNews(); // Оновлюємо список новин
+            fetchNews();
         } catch (err) {
             setError(err.message);
         }
@@ -134,7 +130,7 @@ function CreateNews() {
         setTimeout(() => {
             setError("");
             setSuccess("");
-        }, 5000);  // 5 секунд
+        }, 5000); 
     };
     
 
@@ -156,7 +152,6 @@ function CreateNews() {
                     {error && <p className="error-message">{error}</p>}
                     {success && <p className="success-message">{success}</p>}
                     <section className="news-controller">
-                        {/* Форма створення новини */}
                         <div className="create-news-create-section">
                             <h2>Create a News Post</h2>
                             <textarea
@@ -170,7 +165,6 @@ function CreateNews() {
                             <button className="create-news-create-button" onClick={createNews}>📢 Publish</button>
                         </div>
 
-                        {/* Форма видалення новини */}
                         <div className="create-news-delete-section">
                             <h2>Delete News</h2>
                             <input
@@ -183,7 +177,6 @@ function CreateNews() {
                         </div>
                     </section>
                     
-                    {/* Список новин */}
                     <section className="create-news-list">
                         <h2>News List</h2>
                             <div className="create-news-table-wrapper">

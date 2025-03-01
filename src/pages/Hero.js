@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 function Hero() {
   const navigate = useNavigate();
   return (
-    <main>
+    <div>
         <div className="min-h-screen bg-gradient-to-b from-blue-100 to-white">
           {/* Header */}
           <header className="Hero-header">
@@ -16,7 +16,7 @@ function Hero() {
                 </span>
               </div>
               <div className="Hero-nav">
-                <button className="Hero-registartion" onClick={() => navigate("/registartion")}>
+                <button className="Hero-registartion" onClick={() => navigate("/registration")}>
                   Registration
                 </button>
                 <button className="Hero-login" onClick={() => navigate("/login")}>
@@ -50,33 +50,16 @@ function Hero() {
               
               <div className="Hero-main-right">
                 <div>
-                  <svg
-                    className="Hero-line"
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 800 400"
-                    fill="none"
-                  >
-                    <defs>
-                      <marker
-                        id="arrowhead"
-                        markerWidth="10"
-                        markerHeight="7"
-                        refX="0"
-                        refY="3.5"
-                        orient="auto"
-                      >
-                        <polygon points="0 0, 10 3.5, 0 7" fill="blue" />
-                      </marker>
-                    </defs>
-                    <path
-                      d="M 50,400 
-                        C 300,100 600,100 750,300"
-                      stroke="blue"
-                      strokeWidth="2"
-                      fill="none"
-                      marker-end="url(#arrowhead)" 
-                    />
-                  </svg>
+                    <svg width="500" height="800" xmlns="http://www.w3.org/2000/svg" className="hero-svg">
+                          <path d="M 175 50 
+                              C 80 150, 100 175, 150 275
+                              S 200 450, 50 575"
+                              stroke="#5f5fff" 
+                              fill="none" 
+                              strokeWidth="4" 
+                              strokeDasharray="1000" 
+                              strokeDashoffset="1000" />
+                    </svg>
                   <div className="paperPlane"
                     
                   >
@@ -93,7 +76,7 @@ function Hero() {
             
           </main>
         </div>
-    </main>
+    </div>
     
   );
 };

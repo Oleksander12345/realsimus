@@ -3,23 +3,51 @@ import { useNavigate } from "react-router-dom";
 
 function Long() {
     const navigate = useNavigate();
-    const [services, setServices] = useState([]); // Всі сервіси
-    const [filteredServices, setFilteredServices] = useState([]); // Відфільтровані сервіси
-    const [searchQuery, setSearchQuery] = useState(""); // Фактичний пошуковий запит
-    const [tempSearchQuery, setTempSearchQuery] = useState(""); // Тимчасове поле вводу
-    const [phoneNumbers, setPhoneNumbers] = useState([]); // Номери
-    const [selectedNumber, setSelectedNumber] = useState(""); // Вибраний номер телефону
-    const [selectedService, setSelectedService] = useState(""); // Вибраний сервіс
-    const [selectedPrice, setSelectedPrice] = useState(""); // Вибрана ціна
+    const [services, setServices] = useState([]); 
+    const [filteredServices, setFilteredServices] = useState([]); 
+    const [searchQuery, setSearchQuery] = useState(""); 
+    const [tempSearchQuery, setTempSearchQuery] = useState("");
+    const [phoneNumbers, setPhoneNumbers] = useState([]);
+    const [selectedNumber, setSelectedNumber] = useState("");
+    const [selectedService, setSelectedService] = useState("");
+    const [selectedPrice, setSelectedPrice] = useState("");
     const [purchaseStatus, setPurchaseStatus] = useState("");
     const [balance, setBalance] = useState(null);
-    const token = localStorage.getItem("token"); // Токен авторизації
-    const [showNumbers, setShowNumbers] = useState(false); // Контролює завантаження номерів
+    const [markup, setMarkup] = useState(0);
+    const token = localStorage.getItem("token");
+    const [showNumbers, setShowNumbers] = useState(false);
 
     const handleViewNumbers = () => {
-        setShowNumbers(true); // Включаємо завантаження номерів
-        fetchLongTermMdnData(); // Завантажуємо номери
+        setShowNumbers(true);
+        fetchLongTermMdnData();
+        fetchMarkup();
     };
+
+    const fetchMarkup = async () => {
+        try {
+            console.log("🔍 Fetching markup...");
+            const response = await fetch("http://localhost/admin/markup", {
+                method: "GET",
+                headers: { Authorization: `Bearer ${token}` },
+            });
+
+            if (!response.ok) throw new Error(`Failed to fetch markup: ${response.status}`);
+
+            const data = await response.json();
+            console.log("📩 Markup Response:", data);
+
+            if (typeof data.markup !== "number") {
+                throw new Error("⚠️ Markup field is missing or invalid.");
+            }
+
+            setMarkup(data.markup);
+            localStorage.setItem("markup", data.markup);
+        } catch (err) {
+            console.error("❌ Error fetching markup:", err.message);
+            setMarkup(parseFloat(localStorage.getItem("markup")) || 0);
+        }
+    };
+
 
     const fetchUserBalance = async () => {
         try {
@@ -32,38 +60,41 @@ function Long() {
             });
     
             if (!response.ok) {
-                throw new Error("❌ Не вдалося отримати баланс");
+                throw new Error("❌ I couldn't get the balance");
             }
     
             const data = await response.json();
-            console.log("📌 Отримано баланс:", data.balance);
+            console.log("📌 Otrimano balance:", data.balance);
     
-            setBalance(data.balance.toFixed(2)); // Округлюємо баланс до двох знаків після коми
+            setBalance(data.balance.toFixed(2));
         } catch (error) {
-            console.error("❌ Помилка отримання балансу:", error.message);
-            setBalance("N/A"); // Якщо сталася помилка, показуємо "N/A"
+            console.error("❌ Error in receiving a balance:", error.message);
+            setBalance("N/A");
         }
     };
-  // Функція покупки номера
+
   const buyPhoneNumber = async () => {
     if (!selectedService || !selectedPrice) {
-        setPurchaseStatus("❌ Виберіть сервіс перед покупкою!");
+        setPurchaseStatus("❌ Choose a service before buying!");
+        // hideMessage(setPurchaseStatus);
         return;
     }
 
     const username = localStorage.getItem("username");
     if (!username) {
-        setPurchaseStatus("❌ Помилка авторизації. Будь ласка, увійдіть ще раз.");
+        setPurchaseStatus("❌ Authorization error. Please log in again.");
+        // hideMessage(setPurchaseStatus);
         return;
     }
+    const parsedPrice = parseFloat(selectedPrice);
+    const finalPrice = (parsedPrice * (1 + markup / 100)).toFixed(2);
 
     try {
-        const finalPrice = applyMarkup(selectedPrice); // Додаємо націнку
-
-        console.log("📌 Надсилаємо запит на покупку:", {
+        
+        console.log("📌 Send a purchase request:", {
             username: username,
             service: selectedService,
-            price: finalPrice, // Використовуємо ціну з націнкою
+            price: finalPrice,
             rentalType: "long_term",
         });
 
@@ -76,7 +107,7 @@ function Long() {
             body: JSON.stringify({
                 username: username,
                 service: selectedService,
-                price: finalPrice, // Використовуємо змінену ціну
+                price: finalPrice,
                 rentalType: "long_term",
             }),
         });
@@ -84,27 +115,27 @@ function Long() {
         const data = await response.json();
 
         if (!response.ok) {
-            throw new Error(data.message || "❌ Не вдалося купити номер");
+            throw new Error(data.message || "❌ I couldn't get a license plate");
         }
 
-        console.log("✅ Покупка успішна:", data);
-        setPurchaseStatus(`✅ Куплено номер: ${data.phoneNumber}`);
+        setPurchaseStatus(`✅ Bought a number: ${data.phoneNumber}`);
+        hideMessage(setPurchaseStatus)
 
         fetchLongTermMdnData();
         fetchUserBalance();
     } catch (error) {
-        console.error("❌ Помилка покупки:", error.message);
+        console.error("❌ Purchase error:", error.message);
         setPurchaseStatus(error.message);
     }
 };
 
     const filterServices = (query) => {
-        console.log("📌 Усі сервіси перед фільтрацією:", services);
-        console.log("🔍 Фільтруємо за запитом:", query);
+        console.log("📌 All services before filtering:", services);
+        console.log("🔍 Filter by request:", query);
     
-        if (!services || services.length === 0) {
-          console.error("❌ Немає сервісів для фільтрації.");
-          setFilteredServices([]); // Очищаємо список
+        if (!Array.isArray(services) || services.length === 0) {
+          console.error("❌ There are no services for filtering.");
+          setFilteredServices([]);
           return;
         }
     
@@ -114,10 +145,8 @@ function Long() {
             )
           : services;
     
-        console.log("✅ Відфільтровані сервіси:", filtered);
         setFilteredServices(filtered);
-      };
-  // Отримання сервісів
+    };
     const fetchServices = async () => {
         try {
             const response = await fetch("http://localhost/api/proxy/services", {
@@ -129,7 +158,7 @@ function Long() {
             });
 
             if (!response.ok) {
-                throw new Error(`❌ Помилка сервера: ${response.status}`);
+                throw new Error(`❌ Server sweep: ${response.status}`);
             }
 
             const data = await response.json();
@@ -137,19 +166,21 @@ function Long() {
             const longTermServices = data.message.map((service) => ({
                 name: service.name,
                 ltr_available: parseInt(service.ltr_available, 10) || 0,
-                ltr_price: parseFloat(service.ltr_price) ? parseFloat(service.ltr_price).toFixed(2) : "N/A",
+                original_price: parseFloat(service.ltr_price) ? parseFloat(service.ltr_price).toFixed(2) : "N/A",
+                ltr_price: parseFloat(service.ltr_price)
+                    ? (parseFloat(service.ltr_price) * (1 + markup / 100)).toFixed(2)
+                    : "N/A",
             }));
 
             setServices(longTermServices);
-            setFilteredServices(longTermServices); // Оновлюємо список для фільтрації
+            setFilteredServices(longTermServices);
         } catch (error) {
-            console.error("❌ Помилка отримання сервісів:", error);
             setServices([]);
             setFilteredServices([]);
         }
     };
   
-  // Отримання телефонних номерів
+
     const fetchLongTermMdnData = async () => {
         try {
             const response = await fetch("http://localhost/api/phone-numbers/long-term-mdn", {
@@ -173,7 +204,7 @@ function Long() {
                 phoneNumber: num.phoneNumber || "N/A",
                 expires_at: num.expires_at ? new Date(num.expires_at).toLocaleString() : "N/A",
                 status: num.status || "Unknown",
-                message: "No messages", // Початково порожнє повідомлення
+                message: "No messages", 
             }));
 
             setPhoneNumbers(formattedNumbers);
@@ -185,12 +216,13 @@ function Long() {
 
     const activatePhoneNumber = async () => {
         if (!selectedNumber) {
-            setPurchaseStatus("❌ Виберіть номер перед активацією!");
+            setPurchaseStatus("❌ Select the number before activation!");
+            // hideMessage(setPurchaseStatus);
             return;
         }
     
         try {
-            console.log("📌 Активація номера:", selectedNumber);
+            console.log("📌 Number activation:", selectedNumber);
     
             const response = await fetch(`http://localhost/api/phone-numbers/activate?mdn=${selectedNumber}`, {
                 method: "GET",
@@ -202,18 +234,17 @@ function Long() {
             const data = await response.json();
     
             if (!response.ok) {
-                throw new Error(data.message || "❌ Не вдалося активувати номер");
+                throw new Error(data.message || "❌ Number could not be activated");
             }
     
-            console.log("✅ Номер активовано:", data);
-            setPurchaseStatus("✅ Номер активовано!");
+            setPurchaseStatus("✅ Activated number!");
+            hideMessage(setPurchaseStatus);
     
-            // Якщо активація відбудеться через час, запускаємо перевірку статусу
             if (data.till_change) {
                 checkPhoneNumberStatus(selectedNumber);
             }
         } catch (error) {
-            console.error("❌ Помилка активації:", error.message);
+            console.error("❌ Activation error:", error.message);
             setPurchaseStatus(error.message);
         }
     };
@@ -227,9 +258,8 @@ function Long() {
             });
     
             const data = await response.json();
-            console.log(`📌 Статус номера ${phoneNumber}:`, data.ltr_status);
+            console.log(`📌 Number Status ${phoneNumber}:`, data.ltr_status);
     
-            // Оновлюємо статус у таблиці
             setPhoneNumbers((prevNumbers) =>
                 prevNumbers.map((num) =>
                     num.phoneNumber === phoneNumber
@@ -237,23 +267,22 @@ function Long() {
                         : num
                 )
             );
-    
-            // Якщо номер ще офлайн, повторно перевіряємо через 30 секунд
+
             if (data.ltr_status === "offline") {
                 setTimeout(() => checkPhoneNumberStatus(phoneNumber), 30000);
             }
         } catch (error) {
-            console.error("❌ Помилка перевірки статусу номера:", error.message);
+            console.error("❌ Error checking number status:", error.message);
         }
     };
     const fetchSMSMessages = async () => {
         if (!selectedNumber) {
-            setPurchaseStatus("❌ Виберіть номер перед отриманням повідомлень!");
+            setPurchaseStatus("❌ Select a number before receiving notifications!");
             return;
         }
     
         try {
-            console.log("📩 Отримуємо повідомлення для номера:", selectedNumber);
+            console.log("📩 Receive a message for the number:", selectedNumber);
     
             const response = await fetch("http://localhost/api/sms/messages", {
                 method: "POST",
@@ -265,13 +294,12 @@ function Long() {
             });
     
             const messages = await response.json();
-            console.log("📩 Отримані повідомлення:", messages);
+            console.log("📩 Messages received:", messages);
     
             const latestMessage = messages.length > 0
                 ? `${messages[0].sender}: ${messages[0].message}`
                 : "No messages";
     
-            // Оновлюємо state з отриманими повідомленнями
             setPhoneNumbers((prevNumbers) =>
                 prevNumbers.map((num) =>
                     num.phoneNumber === selectedNumber
@@ -280,17 +308,16 @@ function Long() {
                 )
             );
     
-            // Таймер: якщо користувач не натисне кнопку протягом 1 години – видаляємо номер
             setTimeout(() => handleReturnPhoneNumber(selectedNumber), 3600000);
         } catch (error) {
-            console.error("❌ Помилка отримання повідомлень:", error.message);
+            console.error("❌ Error receiving messages:", error.message);
         }
     };
     const handleReturnPhoneNumber = async (phoneNumber) => {
         const username = localStorage.getItem("username");
     
         try {
-            console.log("🔄 Видаляємо номер:", phoneNumber);
+            console.log("🔄 Delete a number:", phoneNumber);
     
             const response = await fetch("http://localhost/api/phone-numbers/return", {
                 method: "POST",
@@ -304,44 +331,43 @@ function Long() {
             const data = await response.json();
     
             if (!response.ok) {
-                throw new Error(data.message || "❌ Не вдалося повернути номер");
+                throw new Error(data.message || "❌ You couldn't turn the number");
             }
     
-            console.log("✅ Номер повернуто:", data);
-    
-            // Видаляємо номер з таблиці
+            console.log("✅ Number rotated:", data);
+
             setPhoneNumbers((prevNumbers) => prevNumbers.filter((num) => num.phoneNumber !== phoneNumber));
         } catch (error) {
-            console.error("❌ Помилка повернення номера:", error.message);
+            console.error("❌ Mistake of number reversal:", error.message);
         }
     };
-    const applyMarkup = (price) => {
-        const markupPercentage = parseFloat(localStorage.getItem("markup")) || 0; // Отримуємо націнку
-        return (parseFloat(price) * (1 + markupPercentage / 100)).toFixed(2); // Додаємо відсоток
-    };
+
     
     const handleRowClick = (service) => {
-        console.log("🟢 Вибрано сервіс:", service);
-        setSelectedService(service.name);
-        setSelectedPrice(applyMarkup(service.ltr_price)); // Оновлюємо ціну з націнкою
+    console.log("🟢 Service selected:", service);
+    setSelectedService(service.name);
+    setSelectedPrice(service.ltr_price);
+};
+    const hideMessage = (setStateFunction, delay = 5000) => {
+        setTimeout(() => {
+            setStateFunction("");
+        }, delay);
     };
     
-  useEffect(() => {
-    fetchUserBalance();
-    fetchServices();
-}, []);
+    useEffect(() => {
+        fetchUserBalance();
+        fetchServices();
+    }, [markup]);
   useEffect(() => {
     filterServices(searchQuery);
   }, [searchQuery, services]);
     const handleNumberClick = (phoneNumber) => {
-        console.log("🟢 Вибрано номер:", phoneNumber);
-        setSelectedNumber(phoneNumber); // Зберігаємо вибраний номер у стані
+        setSelectedNumber(phoneNumber);
     };
     
 
   return (
     <div className="long-basic-section">
-      {/* Header */}
       <header className="long-header">
         <div className="long-logo">
             <span className="icon">
@@ -351,9 +377,7 @@ function Long() {
         <h1 className="long-title">SMS Number Rental</h1>
         <button className="long-profile-button"  onClick={() => navigate("/profile")}>👤 Profile</button>
       </header>
-      
       <div className="long-container">
-        {/* Balance Section */}
         <div className="long-balance-section">
             <div className="long-flag-container"><img src="/imgs/americflag.png" alt="USA Flag" height={"100px"} width={"175px"} /></div>
             <div className="long-balance-content-title">
@@ -374,8 +398,6 @@ function Long() {
         </div>
         <div className="long-main">
             <div className="long-left">
-                {/* Search Section */}
-                
                 <div className="long-search-section">
                     <div>
                         <label>Service:</label>
@@ -383,14 +405,14 @@ function Long() {
                             type="text"
                             className="long-service-input"
                             style={{ width: "46%", margin: "0px 5px" }}
-                            value={selectedService} // Встановлюємо вибраний сервіс
-                            readOnly // Робимо поле тільки для читання (щоб уникнути введення вручну)
+                            value={selectedService}
+                            readOnly
                         />
                         <input
                             type="text"
                             className="long-amount-input"
                             style={{ width: "15%", marginRight: "5px" }}
-                            value={selectedPrice} // Встановлюємо вибрану ціну
+                            value={selectedPrice}
                             readOnly
                         />
                         <button className="long-buy-button" onClick={buyPhoneNumber}>Buy!</button>
@@ -398,7 +420,7 @@ function Long() {
                     <div>
                         <label>Search:</label>
                         <input type="text" className="long-search-input"  style={{width: "58%", margin: "0px 19px"}}
-                        value={tempSearchQuery} // Використовуємо тимчасове поле
+                        value={tempSearchQuery}
                         onChange={(e) => setTempSearchQuery(e.target.value)}
                         />
                         <button className="long-filter-button" onClick={() => setSearchQuery(tempSearchQuery)}>Filter</button>
@@ -422,12 +444,12 @@ function Long() {
                                     <tr key={index} onClick={() => handleRowClick(service)} style={{ cursor: "pointer" }}>
                                     <td>{service.name}</td>
                                     <td>{service.ltr_available}</td>
-                                    <td>${applyMarkup(service.ltr_price)}</td>
+                                    <td>${service.ltr_price}</td>
                                 </tr>
                                 ))
                             ) : (
                                 <tr>
-                                <td colSpan="3" style={{ textAlign: "center" }}>Немає доступних сервісів</td>
+                                <td colSpan="3" style={{ textAlign: "center" }}>No services available</td>
                                 </tr>
                             )}
                             </tbody>
@@ -455,7 +477,7 @@ function Long() {
                                 <th>Phone Number</th>
                                 <th>End Date</th>
                                 <th>Status</th>
-                                <th>Message</th> {/* Додаємо нову колонку */}
+                                <th>Message</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -466,7 +488,7 @@ function Long() {
                                         <td>{num.phoneNumber}</td>
                                         <td>{new Date(num.expires_at).toLocaleString()}</td>
                                         <td>{!num.status || num.status.trim() === "" ? "offline" : num.status}</td>
-                                        <td>{num.message || "No messages"}</td> {/* Відображення повідомлення */}
+                                        <td>{num.message || "No messages"}</td> 
                                     </tr>
                                 ))
                             ) : (

@@ -9,7 +9,6 @@ function ChangePassword() {
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
     console.log("🔹 Token:", localStorage.getItem("token"));
-    // 🔹 Функція зміни пароля
     const handlePasswordChange = async (e) => {
       e.preventDefault();
   
@@ -43,20 +42,19 @@ function ChangePassword() {
               body: JSON.stringify({ oldPassword, newPassword }),
           });
   
-          const responseText = await response.text(); // Отримуємо відповідь як текст
+          const responseText = await response.text(); 
           console.log("📩 Server Response:", responseText || "[EMPTY RESPONSE]");
   
           if (!response.ok) {
               throw new Error(`❌ Server error: ${response.status}`);
           }
   
-          // Перевіряємо, чи відповідь містить JSON, якщо ні - просто показуємо успіх
           let data;
           try {
               data = responseText ? JSON.parse(responseText) : {};
           } catch (jsonError) {
               console.warn("⚠️ Cannot parse JSON. Server returned non-JSON response.");
-              data = {}; // Запобігаємо крашу
+              data = {}; 
           }
   
           setMessage(data.message || "✅ Password updated successfully!");

@@ -11,7 +11,6 @@ function AdminPanel() {
     const [transactions, setTransactions] = useState([]);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
-
     const [deleteUsername, setDeleteUsername] = useState("");
     const [balanceUsername, setBalanceUsername] = useState("");
     const [newBalance, setNewBalance] = useState("");
@@ -32,7 +31,7 @@ function AdminPanel() {
             setRole("ADMIN");
             fetchAllUsers();
             fetchAllTransactions();
-            fetchMarkup();
+            fetchMarkup(token);
         } else {
             navigate("/registration");
         }
@@ -64,7 +63,7 @@ function AdminPanel() {
             }
     
             if (!response.ok) {
-                const errorData = await response.text(); // Читаємо відповідь у вигляді тексту
+                const errorData = await response.text();
                 throw new Error(`Failed to fetch users: ${errorData}`);
             }
     
@@ -74,6 +73,7 @@ function AdminPanel() {
         } catch (err) {
             console.error("❌ Error fetching users:", err.message);
             setError(err.message);
+            hideMessage(setError);
         }
     };
     
@@ -82,86 +82,103 @@ function AdminPanel() {
         try {
             const response = await fetch("http://localhost/admin/all-transactions", {
                 method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-
-            if (!response.ok) throw new Error("Failed to fetch transactions");
-
-            const data = await response.json();
-            setTransactions(data.filter((txn) => txn.status !== "created"));
-        } catch (err) {
-            setError(err.message);
-        }
-    };
-
-    const fetchMarkup = async () => {
-        try {
-            console.log("🔍 Fetching markup...");
-    
-            const response = await fetch("http://localhost/admin/markup", {
-                method: "GET",
-                headers: { Authorization: `Bearer ${token}` },
-            });
-    
-            if (!response.ok) throw new Error(`Failed to fetch markup: ${response.status}`);
-    
-            const data = await response.json(); // Отримуємо JSON
-    
-            console.log("📩 Raw Markup Response:", data);
-    
-            const parsedMarkup = parseFloat(data);
-            if (isNaN(parsedMarkup)) {
-                throw new Error("⚠️ Markup field is missing or invalid in response.");
-            }
-    
-            console.log("✅ Parsed Markup Data:", parsedMarkup);
-            setMarkup(parsedMarkup.toString()); // Оновлюємо стан
-            localStorage.setItem("markup", parsedMarkup); // Зберігаємо в localStorage
-        } catch (err) {
-            console.error("❌ Error fetching markup:", err.message);
-            setError(err.message);
-        }
-    };
-    
-    
-    
-    const updateMarkup = async () => {
-        try {
-            const parsedMarkup = parseFloat(markup);
-
-            if (isNaN(parsedMarkup)) {
-                throw new Error("⚠️ Invalid markup value. Please enter a valid number.");
-            }
-
-            console.log("🚀 Sending Markup Update Request:", JSON.stringify({ markup: parsedMarkup }));
-
-            const response = await fetch("http://localhost/admin/markup", {
-                method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({ markup: parsedMarkup }), // Коректне тіло
             });
-
-            const text = await response.text(); // Читаємо відповідь у вигляді тексту
-            console.log("📩 Raw Update Response:", text);
-            
+    
+            console.log("🔄 Response status:", response.status);
+    
             if (!response.ok) {
-                throw new Error(`Failed to update markup: ${text}`);
+                throw new Error(`❌ Failed to fetch transactions: ${response.status}`);
+            }
+    
+            const data = await response.json();
+    
+            if (!Array.isArray(data) || data.length === 0) {
+                console.warn("⚠ No transactions found.");
+                setTransactions([]);
+                return;
             }
 
-            console.log("✅ Markup successfully updated on server!");
-
-            setSuccess("✅ Markup updated successfully!");
-            fetchMarkup(); // Оновлення після змін
-
-        } catch (err) {
-            console.error("❌ Error updating markup:", err.message);
-            setError(err.message);
+            setTransactions(data.filter((txn) => txn.status !== "created" || txn.amount > 0));
+    
+        } catch (error) {
+            console.error("❌ Error receiving transactions:", error.message);
+            setError(error.message || "Internal server error occurred.");
+            hideMessage(setError);
         }
     };
 
+    const fetchMarkup = (token) => {
+        const url = "http://localhost/admin/markup";
+
+        fetch(url, {
+            method: "GET",
+            headers: { Authorization: `Bearer ${token}` },
+        })
+            .then((response) => {
+                if (!response.ok) throw new Error("Failed to fetch markup");
+                return response.json();
+            })
+            .then((markup) => {
+                console.log("Fetched markup:", markup);
+                localStorage.setItem("markup", markup);
+                setMarkup(markup.toString());
+            })
+            .catch((error) => {
+                console.error("Error fetching markup:", error.message);
+                setError("Failed to load current markup.");
+                hideMessage(setError);
+            });
+    };
+
+    const updateMarkup = () => {
+        const parsedMarkup = parseFloat(markup);
+        if (isNaN(parsedMarkup)) {
+            setError("⚠️ Invalid markup value. Please enter a valid number.");
+            hideMessage(setError);
+            return;
+        }
+    
+        const url = "http://localhost/admin/markup";
+    
+        fetch(url, {
+            method: "POST",
+            headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ markup: parsedMarkup }), 
+        })
+            .then((response) => {
+                const contentType = response.headers.get("Content-Type");
+                if (!response.ok) {
+                    return response.text().then((errorText) => {
+                        throw new Error(errorText || "Failed to set markup");
+                    });
+                }
+                if (contentType && contentType.includes("application/json")) {
+                    return response.json();
+                } else {
+                    return response.text().then((text) => ({ message: text }));
+                }
+            })
+            .then((data) => {
+                localStorage.setItem("markup", markup);
+                setSuccess(`✅ ${data.message}`);
+                setError("");
+                hideMessage(setError);
+                fetchMarkup(token);
+            })
+            .catch((error) => {
+                console.error("Error updating markup:", error.message);
+                setError(error.message);
+                displayMessage(setError);
+            });
+    };
+    
 
 
     const deleteUser = async () => {
@@ -177,6 +194,7 @@ function AdminPanel() {
             fetchAllUsers();
         } catch (err) {
             setError(err.message);
+            hideMessage(setError);
         }
     };
 
@@ -197,6 +215,7 @@ function AdminPanel() {
             fetchAllUsers();
         } catch (err) {
             setError(err.message);
+            hideMessage(setError);
         }
     };
 
@@ -218,6 +237,7 @@ function AdminPanel() {
             fetchAllUsers();
         } catch (err) {
             setError(err.message);
+            hideMessage(setError);
         }
     };
     const displayMessage = (type, message) => {
@@ -227,11 +247,17 @@ function AdminPanel() {
             setError(message);
         }
     
-        // Автоматично очищаємо повідомлення через 5 секунд
         setTimeout(() => {
             setSuccess("");
             setError("");
         }, 5000);
+    };
+    const hideMessage = (setStateFunction, message, delay = 5000) => {
+        setTimeout(() => {
+            if (message === error || message === success) {
+                setStateFunction("");
+            }
+        }, delay);
     };
 
     return (
@@ -360,13 +386,12 @@ function AdminPanel() {
                                         <td>${txn.amount.toFixed(2)}</td>
                                         <td>{txn.status}</td>
                                         <td>{new Date(txn.date).toLocaleString()}</td>
-                                        <td>{txn.user}</td>
+                                        <td>{txn.username}</td>
                                     </tr>
                                 ))}
                             </tbody>
                         </table>
-                    </div>
-                    
+                    </div>        
                 </section>
             </main>
         </div>

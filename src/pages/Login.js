@@ -9,8 +9,8 @@ function Login() {
 
   const fetchUserProfile = async () => {
     try {
-      const token = localStorage.getItem("token"); // Отримуємо токен
-      if (!token) return; // Якщо токена немає, виходимо
+      const token = localStorage.getItem("token");
+      if (!token) return;
 
       const response = await fetch("http://localhost/api/auth/profile", {
         method: "GET",
@@ -22,14 +22,14 @@ function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Отримані дані користувача:", data); // Додаткове логування
+        console.log("Received user data:", data); 
         localStorage.setItem("email", data.email);
-        localStorage.setItem("email", data.username); // Зберігаємо email у localStorage
+        localStorage.setItem("email", data.username); 
       } else {
-        console.error("Не вдалося отримати email, статус:", response.status);
+        console.error("Could not get your email, status:", response.status);
       }
     } catch (error) {
-      console.error("Помилка при отриманні профілю:", error);
+      console.error("Error when receiving a profile:", error);
     }
   };
   const handleSubmit = async (e) => {
@@ -45,29 +45,26 @@ function Login() {
         const data = await response.json();
         
         if (response.ok) {
-            console.log("📌 Отриманий токен:", data.token);  // Додаємо логування
+            console.log("📌 Token is gotted:", data.token); 
 
             localStorage.setItem("token", data.token);
             
-            // Декодуємо JWT-токен
             const decodedToken = JSON.parse(atob(data.token.split(".")[1]));
-            console.log("📌 Декодований токен:", decodedToken);  // Виводимо у консоль
+            console.log("📌 Decode token:", decodedToken);
 
-            // Зберігаємо ім'я користувача
             localStorage.setItem("username", decodedToken.sub);
 
-            // Перевіряємо, чи є `roles`
             if (decodedToken.roles) {
                 localStorage.setItem("role", JSON.stringify(decodedToken.roles));
-                console.log("📌 Збережені ролі:", decodedToken.roles);
+                console.log("📌 Saved roles:", decodedToken.roles);
             } else {
-                console.error("❌ Роль не знайдено в токені!");
+                console.error("❌ Role not found in token!");
             }
 
-            await fetchUserProfile();  // Чекаємо завершення запиту профілю
+            await fetchUserProfile();
 
             setTimeout(() => {
-                navigate("/news");  // Переходимо після збереження всіх даних
+                navigate("/news"); 
             }, 500);
         } else {
             setError(data.message || "Login failed");

@@ -11,7 +11,6 @@ function Cryptocurency() {
   const token = localStorage.getItem("token");
   const [email, setEmail] = useState("");
 
-  // Перевірка токена та отримання профілю
   useEffect(() => {
     if (!token) {
       setMessage("❌ Authorization token not found. Redirecting to login...");
@@ -21,7 +20,6 @@ function Cryptocurency() {
     fetchUserProfile();
   }, []);
 
-  // ✅ **Функція отримання профілю користувача**
   const fetchUserProfile = async () => {
     try {
       const response = await fetch("http://localhost/api/auth/profile", {
@@ -41,7 +39,6 @@ function Cryptocurency() {
     }
   };
 
-  // ✅ **Функція створення платежу**
   const createPayment = async () => {
     if (!email) {
       setMessage("❌ Email not found. Please log in.");
