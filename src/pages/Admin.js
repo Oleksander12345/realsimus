@@ -43,9 +43,7 @@ function AdminPanel() {
                 console.error("❌ Token is missing. Fetch aborted.");
                 return;
             }
-    
-            console.log("🔍 Fetching users with token:", token);
-    
+
             const response = await fetch("http://localhost/admin/users-with-numbers", {
                 method: "GET",
                 headers: {
@@ -53,8 +51,6 @@ function AdminPanel() {
                     "Content-Type": "application/json",
                 },
             });
-    
-            console.log("🔄 Response status:", response.status);
     
             if (response.status === 204) {
                 console.warn("⚠ No content received.");
@@ -68,7 +64,6 @@ function AdminPanel() {
             }
     
             const data = await response.json();
-            console.log("✅ Users fetched successfully:", data);
             setUsers(data);
         } catch (err) {
             console.error("❌ Error fetching users:", err.message);
@@ -88,7 +83,6 @@ function AdminPanel() {
                 },
             });
     
-            console.log("🔄 Response status:", response.status);
     
             if (!response.ok) {
                 throw new Error(`❌ Failed to fetch transactions: ${response.status}`);
@@ -123,7 +117,6 @@ function AdminPanel() {
                 return response.json();
             })
             .then((markup) => {
-                console.log("Fetched markup:", markup);
                 localStorage.setItem("markup", markup);
                 setMarkup(markup.toString());
             })
@@ -143,7 +136,7 @@ function AdminPanel() {
         }
     
         const url = "http://localhost/admin/markup";
-    
+        
         fetch(url, {
             method: "POST",
             headers: {

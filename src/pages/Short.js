@@ -24,10 +24,11 @@ function Short() {
             fetchShortTermMdnData(); 
             fetchMarkup();
         };
+        
+        
 
         const fetchMarkup = async () => {
             try {
-                console.log("🔍 Fetching markup...");
                 const response = await fetch("http://localhost/admin/markup", {
                     method: "GET",
                     headers: { Authorization: `Bearer ${token}` },
@@ -36,7 +37,6 @@ function Short() {
                 if (!response.ok) throw new Error(`Failed to fetch markup: ${response.status}`);
     
                 const data = await response.json();
-                console.log("📩 Markup Response:", data);
     
                 if (typeof data.markup !== "number") {
                     throw new Error("⚠️ Markup field is missing or invalid.");
@@ -53,8 +53,6 @@ function Short() {
     const expirePhoneNumber = async (phoneNumber) => {
         const token = localStorage.getItem("token");
 
-        console.log("📌 We delete the number after 15 minutes of inactivity:", phoneNumber);
-
         if (!token) {
             console.error("❌ The token is missing, the number cannot be deleted.");
             return;
@@ -69,7 +67,6 @@ function Short() {
             });
 
             const data = await response.json();
-            console.log("📌 Server response (number deletion):", data);
 
             if (!response.ok) {
                 throw new Error(data.message || `❌ I could not see the number (code ${response.status})`);
@@ -97,7 +94,6 @@ function Short() {
             }
     
             const data = await response.json();
-            console.log("📌 Otrimano balance:", data.balance);
     
             setBalance(data.balance.toFixed(2)); 
         } catch (error) {
@@ -120,8 +116,9 @@ function Short() {
             return;
         }
 
-        const parsedPrice = parseFloat(selectedPrice);
-        const finalPrice = (parsedPrice * (1 + markup / 100)).toFixed(2); 
+        // const parsedPrice = parseFloat(selectedPrice);
+        const finalPrice = selectedPrice;
+ 
 
         if (isNaN(finalPrice)) {
             setPurchaseStatus("❌ Incorrect price. Enter the correct value.");
@@ -129,13 +126,6 @@ function Short() {
         }
 
         try {
-            console.log("📌 Send a purchase request:", JSON.stringify({
-                username: username,
-                service: selectedService,
-                price: finalPrice,
-                rentalType: "short_term",
-            }));
-
             const response = await fetch("http://localhost/api/phone-numbers/purchase", {
                 method: "POST",
                 headers: {
@@ -156,7 +146,6 @@ function Short() {
                 throw new Error(data.message || `❌ I couldn't buy the number (code ${response.status})`);
             }
 
-            console.log("✅ The purchase is successful:", data);
             setPurchaseStatus(`✅ Bought number:${data.phoneNumber}`);
 
             setPhoneNumbers((prevNumbers) => [
@@ -177,8 +166,6 @@ function Short() {
         }
     };
     const filterServices = (query) => {
-        console.log("📌 All services before filtering:", services);
-        console.log("🔍 Filter by request:", query);
     
         if (!services || services.length === 0) {
           console.error("❌ There are no filtering services.");
@@ -192,7 +179,6 @@ function Short() {
             )
           : services;
     
-        console.log("✅ Filtered services:", filtered);
         setFilteredServices(filtered);
       };
 
@@ -273,11 +259,9 @@ function Short() {
     
         if (expireTimer) {
             clearTimeout(expireTimer);
-            console.log("✅ Deletion timer canceled: user pressed 'Get Message'");
         }
     
         try {
-            console.log("📩 Receive a message for the number:", selectedNumber);
     
             const response = await fetch("http://localhost/api/sms/messages", {
                 method: "POST",
@@ -289,7 +273,6 @@ function Short() {
             });
     
             const messages = await response.json();
-            console.log("📩 Messages received:", messages);
     
             const latestMessage = messages.length > 0
                 ? `${messages[0].sender}: ${messages[0].message}`
@@ -317,12 +300,10 @@ function Short() {
     filterServices(searchQuery);
   }, [searchQuery, services]);
     const handleRowClick = (service) => {
-        console.log("🟢 Choosed a service:", service);
         setSelectedService(service.name);
         setSelectedPrice(service.ltr_short_price);
     };
     const handleNumberClick = (phoneNumber) => {
-        console.log("🟢 Choosed a number:", phoneNumber);
         setSelectedNumber(phoneNumber);
     };
      

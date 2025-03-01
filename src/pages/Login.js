@@ -22,7 +22,6 @@ function Login() {
 
       if (response.ok) {
         const data = await response.json();
-        console.log("Received user data:", data); 
         localStorage.setItem("email", data.email);
         localStorage.setItem("email", data.username); 
       } else {
@@ -45,18 +44,14 @@ function Login() {
         const data = await response.json();
         
         if (response.ok) {
-            console.log("📌 Token is gotted:", data.token); 
-
             localStorage.setItem("token", data.token);
             
             const decodedToken = JSON.parse(atob(data.token.split(".")[1]));
-            console.log("📌 Decode token:", decodedToken);
 
             localStorage.setItem("username", decodedToken.sub);
 
             if (decodedToken.roles) {
                 localStorage.setItem("role", JSON.stringify(decodedToken.roles));
-                console.log("📌 Saved roles:", decodedToken.roles);
             } else {
                 console.error("❌ Role not found in token!");
             }

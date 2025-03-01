@@ -22,10 +22,13 @@ function Long() {
         fetchLongTermMdnData();
         fetchMarkup();
     };
+    useEffect(() => {
+        fetchLongTermMdnData();
+    }, []);
+    
 
     const fetchMarkup = async () => {
         try {
-            console.log("🔍 Fetching markup...");
             const response = await fetch("http://localhost/admin/markup", {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
@@ -34,7 +37,6 @@ function Long() {
             if (!response.ok) throw new Error(`Failed to fetch markup: ${response.status}`);
 
             const data = await response.json();
-            console.log("📩 Markup Response:", data);
 
             if (typeof data.markup !== "number") {
                 throw new Error("⚠️ Markup field is missing or invalid.");
@@ -64,7 +66,6 @@ function Long() {
             }
     
             const data = await response.json();
-            console.log("📌 Otrimano balance:", data.balance);
     
             setBalance(data.balance.toFixed(2));
         } catch (error) {
@@ -73,66 +74,53 @@ function Long() {
         }
     };
 
-  const buyPhoneNumber = async () => {
-    if (!selectedService || !selectedPrice) {
-        setPurchaseStatus("❌ Choose a service before buying!");
-        // hideMessage(setPurchaseStatus);
-        return;
-    }
-
-    const username = localStorage.getItem("username");
-    if (!username) {
-        setPurchaseStatus("❌ Authorization error. Please log in again.");
-        // hideMessage(setPurchaseStatus);
-        return;
-    }
-    const parsedPrice = parseFloat(selectedPrice);
-    const finalPrice = (parsedPrice * (1 + markup / 100)).toFixed(2);
-
-    try {
-        
-        console.log("📌 Send a purchase request:", {
-            username: username,
-            service: selectedService,
-            price: finalPrice,
-            rentalType: "long_term",
-        });
-
-        const response = await fetch("http://localhost/api/phone-numbers/purchase", {
-            method: "POST",
-            headers: {
-                Authorization: `Bearer ${token}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                username: username,
-                service: selectedService,
-                price: finalPrice,
-                rentalType: "long_term",
-            }),
-        });
-
-        const data = await response.json();
-
-        if (!response.ok) {
-            throw new Error(data.message || "❌ I couldn't get a license plate");
+    const buyPhoneNumber = async () => {
+        if (!selectedService || !selectedPrice) {
+            setPurchaseStatus("❌ Choose a service before buying!");
+            return;
         }
-
-        setPurchaseStatus(`✅ Bought a number: ${data.phoneNumber}`);
-        hideMessage(setPurchaseStatus)
-
-        fetchLongTermMdnData();
-        fetchUserBalance();
-    } catch (error) {
-        console.error("❌ Purchase error:", error.message);
-        setPurchaseStatus(error.message);
-    }
-};
-
-    const filterServices = (query) => {
-        console.log("📌 All services before filtering:", services);
-        console.log("🔍 Filter by request:", query);
     
+        const username = localStorage.getItem("username");
+        if (!username) {
+            setPurchaseStatus("❌ Authorization error. Please log in again.");
+            return;
+        }
+    
+        try {
+            console.log("📌 Sending purchase request...");
+            console.log("🔹 Service:", selectedService);
+            console.log("🔹 Final price (already with markup):", selectedPrice);
+    
+            const response = await fetch("http://localhost/api/phone-numbers/purchase", {
+                method: "POST",
+                headers: {
+                    Authorization: `Bearer ${token}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    username: username,
+                    service: selectedService,
+                    price: selectedPrice,
+                    rentalType: "long_term",
+                }),
+            });
+    
+            const data = await response.json();
+    
+            if (!response.ok) {
+                throw new Error(data.message || "❌ Purchase failed.");
+            }
+    
+            setPurchaseStatus(`✅ Bought a number: ${data.phoneNumber}`);
+            hideMessage(setPurchaseStatus);
+            fetchUserBalance();
+        } catch (error) {
+            console.error("❌ Purchase error:", error.message);
+            setPurchaseStatus(error.message);
+        }
+    };
+
+    const filterServices = (query) => {    
         if (!Array.isArray(services) || services.length === 0) {
           console.error("❌ There are no services for filtering.");
           setFilteredServices([]);
@@ -217,13 +205,10 @@ function Long() {
     const activatePhoneNumber = async () => {
         if (!selectedNumber) {
             setPurchaseStatus("❌ Select the number before activation!");
-            // hideMessage(setPurchaseStatus);
             return;
         }
     
-        try {
-            console.log("📌 Number activation:", selectedNumber);
-    
+        try {  
             const response = await fetch(`http://localhost/api/phone-numbers/activate?mdn=${selectedNumber}`, {
                 method: "GET",
                 headers: {
@@ -258,7 +243,6 @@ function Long() {
             });
     
             const data = await response.json();
-            console.log(`📌 Number Status ${phoneNumber}:`, data.ltr_status);
     
             setPhoneNumbers((prevNumbers) =>
                 prevNumbers.map((num) =>
@@ -281,9 +265,7 @@ function Long() {
             return;
         }
     
-        try {
-            console.log("📩 Receive a message for the number:", selectedNumber);
-    
+        try {    
             const response = await fetch("http://localhost/api/sms/messages", {
                 method: "POST",
                 headers: {
@@ -294,7 +276,6 @@ function Long() {
             });
     
             const messages = await response.json();
-            console.log("📩 Messages received:", messages);
     
             const latestMessage = messages.length > 0
                 ? `${messages[0].sender}: ${messages[0].message}`
@@ -317,8 +298,6 @@ function Long() {
         const username = localStorage.getItem("username");
     
         try {
-            console.log("🔄 Delete a number:", phoneNumber);
-    
             const response = await fetch("http://localhost/api/phone-numbers/return", {
                 method: "POST",
                 headers: {
@@ -333,8 +312,6 @@ function Long() {
             if (!response.ok) {
                 throw new Error(data.message || "❌ You couldn't turn the number");
             }
-    
-            console.log("✅ Number rotated:", data);
 
             setPhoneNumbers((prevNumbers) => prevNumbers.filter((num) => num.phoneNumber !== phoneNumber));
         } catch (error) {
@@ -344,7 +321,6 @@ function Long() {
 
     
     const handleRowClick = (service) => {
-    console.log("🟢 Service selected:", service);
     setSelectedService(service.name);
     setSelectedPrice(service.ltr_price);
 };

@@ -22,7 +22,6 @@ function News() {
             if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
             const data = await response.json();
-            console.log("✅ News fetched successfully:", data);
             setNews(data);
         } catch (error) {
             console.error("❌ Error fetching news:", error.message);

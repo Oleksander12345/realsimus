@@ -31,8 +31,6 @@ function ChangePassword() {
       }
   
       try {
-          console.log("📌 Sending password change request...");
-  
           const response = await fetch("http://localhost/api/auth/profile/change-password", {
               method: "PATCH",
               headers: {
@@ -43,7 +41,6 @@ function ChangePassword() {
           });
   
           const responseText = await response.text(); 
-          console.log("📩 Server Response:", responseText || "[EMPTY RESPONSE]");
   
           if (!response.ok) {
               throw new Error(`❌ Server error: ${response.status}`);

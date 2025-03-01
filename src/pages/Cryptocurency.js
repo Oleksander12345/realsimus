@@ -30,7 +30,6 @@ function Cryptocurency() {
       if (!response.ok) throw new Error("❌ Failed to fetch profile.");
 
       const data = await response.json();
-      console.log("📌 User profile:", data);
       setBalance(data.balance ? `$${data.balance.toFixed(2)}` : "$0.00");
       setEmail(data.email);
     } catch (error) {

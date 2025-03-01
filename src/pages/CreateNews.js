@@ -22,7 +22,6 @@ function CreateNews() {
         }
 
         const userRole = extractRoleFromToken(token);
-        console.log("✅ User role extracted:", userRole);
         setRole(userRole);
 
         if (userRole === "ADMIN") {
