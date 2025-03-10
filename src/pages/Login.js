@@ -6,13 +6,13 @@ function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const navigate = useNavigate();
-
+  const API_URL = process.env.REACT_APP_API_URL;
   const fetchUserProfile = async () => {
     try {
       const token = localStorage.getItem("token");
       if (!token) return;
 
-      const response = await fetch("http://localhost/api/auth/profile", {
+      const response = await fetch(`${API_URL}/api/auth/profile`, {
         method: "GET",
         headers: {
           "Authorization": `Bearer ${token}`,
@@ -34,7 +34,7 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-        const response = await fetch("http://localhost/api/auth/login", {
+        const response = await fetch(`${API_URL}/api/auth/login`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -45,7 +45,7 @@ function Login() {
         
         if (response.ok) {
             localStorage.setItem("token", data.token);
-            
+            console.log(data.token);
             const decodedToken = JSON.parse(atob(data.token.split(".")[1]));
 
             localStorage.setItem("username", decodedToken.sub);

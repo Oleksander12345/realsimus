@@ -5,7 +5,7 @@ function News() {
     const navigate = useNavigate();
     const [news, setNews] = useState([]);
     const [error, setError] = useState("");
-
+    const API_URL = process.env.REACT_APP_API_URL;
     const token = localStorage.getItem("token");
 
     useEffect(() => {
@@ -14,7 +14,7 @@ function News() {
 
     async function fetchNews() {
         try {
-            const response = await fetch("http://localhost/api/news", {
+            const response = await fetch(`${API_URL}/api/news`, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
             });

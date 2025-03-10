@@ -11,6 +11,8 @@ function Cryptocurency() {
   const token = localStorage.getItem("token");
   const [email, setEmail] = useState("");
 
+  const username = localStorage.getItem("username");
+  const API_URL = process.env.REACT_APP_API_URL;
   useEffect(() => {
     if (!token) {
       setMessage("❌ Authorization token not found. Redirecting to login...");
@@ -22,7 +24,7 @@ function Cryptocurency() {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch("http://localhost/api/auth/profile", {
+      const response = await fetch(`${API_URL}/api/auth/profile`, {
         method: "GET",
         headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
       });
@@ -53,28 +55,30 @@ function Cryptocurency() {
 
     try {
       console.log("📌 Creating payment request...");
-      const response = await fetch("http://localhost/api/cryptocloud/payments/create", {
+
+      const response = await fetch(`${API_URL}/api/payment/create-payment`, {
         method: "POST",
-        headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
         body: JSON.stringify({
-          orderId: `order-${Date.now()}`,
           amount: parsedAmount,
-          currency: "USD",
-          cryptocurrency: "BTC",
-          email: email,
+          username: username
         }),
       });
 
       if (!response.ok) throw new Error("❌ Failed to create payment.");
 
-      const data = await response.json();
-      console.log("✅ Payment created:", data);
+      const paymentLink = await response.text(); // Получаем текстовый ответ (ссылка)
 
-      if (data.paymentUrl) {
-        setPaymentUrl(data.paymentUrl);
+      console.log("✅ Payment created:", paymentLink);
+
+      if (paymentLink) {
+        setPaymentUrl(paymentLink); // Устанавливаем ссылку на оплату
         setMessage("✅ Payment link created successfully!");
       } else {
-        throw new Error("❌ Payment URL not found in response.");
+        throw new Error("❌ Payment link not found in response.");
       }
     } catch (error) {
       console.error("❌ Error creating payment:", error.message);

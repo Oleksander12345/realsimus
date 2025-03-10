@@ -6,6 +6,7 @@ function Forgot() {
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
     const navigate = useNavigate();
+    const API_URL = process.env.REACT_APP_API_URL;
 
 
     const handleSubmit = async (e) => {
@@ -17,7 +18,7 @@ function Forgot() {
         }
 
         try {
-            const response = await fetch("http://localhost/api/auth/forgot-password", {
+            const response = await fetch(`${API_URL}/api/auth/forgot-password`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email }),

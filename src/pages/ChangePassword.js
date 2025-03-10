@@ -8,6 +8,7 @@ function ChangePassword() {
     const [message, setMessage] = useState("");
     const navigate = useNavigate();
     const token = localStorage.getItem("token");
+    const API_URL = process.env.REACT_APP_API_URL;
     console.log("🔹 Token:", localStorage.getItem("token"));
     const handlePasswordChange = async (e) => {
       e.preventDefault();
@@ -31,7 +32,7 @@ function ChangePassword() {
       }
   
       try {
-          const response = await fetch("http://localhost/api/auth/profile/change-password", {
+          const response = await fetch(`${API_URL}/api/auth/profile/change-password`, {
               method: "PATCH",
               headers: {
                   Authorization: `Bearer ${token}`,

@@ -15,10 +15,11 @@ function Short() {
     const [balance, setBalance] = useState(null);
     const token = localStorage.getItem("token"); 
     let expireTimer = null;
-    const [showNumbers, setShowNumbers] = useState(false); 
+    const [showNumbers, setShowNumbers] = useState(false);
+
     const [markup, setMarkup] = useState(0);
-    
-        
+
+    const API_URL = process.env.REACT_APP_API_URL;
         const handleViewNumbers = () => {
             setShowNumbers(true); 
             fetchShortTermMdnData(); 
@@ -29,7 +30,7 @@ function Short() {
 
         const fetchMarkup = async () => {
             try {
-                const response = await fetch("http://localhost/admin/markup", {
+                const response = await fetch(`${API_URL}/admin/markup`, {
                     method: "GET",
                     headers: { Authorization: `Bearer ${token}` },
                 });
@@ -59,7 +60,7 @@ function Short() {
         }
 
         try {
-            const response = await fetch(`http://localhost/api/phone-numbers/short-term-expire/${phoneNumber}`, {
+            const response = await fetch(`${API_URL}/api/phone-numbers/short-term-expire/${phoneNumber}`, {
                 method: "DELETE",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -81,7 +82,7 @@ function Short() {
 
     const fetchUserBalance = async () => {
         try {
-            const response = await fetch("http://localhost/api/auth/profile", {
+            const response = await fetch(`${API_URL}/api/auth/profile`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -126,7 +127,7 @@ function Short() {
         }
 
         try {
-            const response = await fetch("http://localhost/api/phone-numbers/purchase", {
+            const response = await fetch(`${API_URL}/api/phone-numbers/purchase`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -184,7 +185,7 @@ function Short() {
 
     const fetchServices = async () => {
         try {
-            const response = await fetch("http://localhost/api/proxy/short-term-services", {
+            const response = await fetch(`${API_URL}/api/proxy/short-term-services`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -217,7 +218,7 @@ function Short() {
     };
     const fetchShortTermMdnData = async () => {
         try {
-            const response = await fetch("http://localhost/api/phone-numbers/short-term-mdn", {
+            const response = await fetch(`${API_URL}/api/phone-numbers/short-term-mdn`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -263,7 +264,7 @@ function Short() {
     
         try {
     
-            const response = await fetch("http://localhost/api/sms/messages", {
+            const response = await fetch(`${API_URL}/api/sms/messages`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,

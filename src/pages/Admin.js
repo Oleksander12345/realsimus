@@ -18,8 +18,9 @@ function AdminPanel() {
     const [recipientUsername, setRecipientUsername] = useState("");
     const [phoneNumber, setPhoneNumber] = useState("");
 
-    const token = localStorage.getItem("token");
 
+    const token = localStorage.getItem("token");
+    const API_URL = process.env.REACT_APP_API_URL;
     useEffect(() => {
         if (!token) {
             navigate("/login");
@@ -44,7 +45,7 @@ function AdminPanel() {
                 return;
             }
 
-            const response = await fetch("http://localhost/admin/users-with-numbers", {
+            const response = await fetch(`${API_URL}/api/admin/users-with-numbers`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -75,15 +76,14 @@ function AdminPanel() {
 
     const fetchAllTransactions = async () => {
         try {
-            const response = await fetch("http://localhost/admin/all-transactions", {
+            const response = await fetch(`${API_URL}/admin/get-all-transactions`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
                     "Content-Type": "application/json",
                 },
             });
-    
-    
+
             if (!response.ok) {
                 throw new Error(`❌ Failed to fetch transactions: ${response.status}`);
             }
@@ -106,7 +106,7 @@ function AdminPanel() {
     };
 
     const fetchMarkup = (token) => {
-        const url = "http://localhost/admin/markup";
+        const url = `${API_URL}/admin/markup`;
 
         fetch(url, {
             method: "GET",
@@ -135,7 +135,7 @@ function AdminPanel() {
             return;
         }
     
-        const url = "http://localhost/admin/markup";
+        const url = `${API_URL}/admin/markup`;
         
         fetch(url, {
             method: "POST",
@@ -176,7 +176,7 @@ function AdminPanel() {
 
     const deleteUser = async () => {
         try {
-            const response = await fetch(`http://localhost/admin/delete-user?username=${deleteUsername}`, {
+            const response = await fetch(`${API_URL}/admin/delete-user?username=${deleteUsername}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -193,7 +193,7 @@ function AdminPanel() {
 
     const updateUserBalance = async () => {
         try {
-            const response = await fetch("http://localhost/admin/update-balance", {
+            const response = await fetch(`${API_URL}/admin/update-balance`, {
                 method: "PUT",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -214,7 +214,7 @@ function AdminPanel() {
 
     const transferPhoneNumber = async () => {
         try {
-            const response = await fetch("http://localhost/admin/transfer-number-by-usernames", {
+            const response = await fetch(`${API_URL}/admin/transfer-number-by-usernames`, {
                 method: "PUT",
                 headers: {
                     Authorization: `Bearer ${token}`,

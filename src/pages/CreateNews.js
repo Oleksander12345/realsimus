@@ -11,9 +11,9 @@ function CreateNews() {
     const [role, setRole] = useState(null);
     const maxCharacters = 630;
 
-    const token = localStorage.getItem("token");
-    
 
+    const token = localStorage.getItem("token");
+    const API_URL = process.env.REACT_APP_API_URL;
     useEffect(() => {
         if (!token) {
             console.error("❌ Token is missing. Redirecting to login...");
@@ -45,7 +45,7 @@ function CreateNews() {
 
     async function fetchNews() {
         try {
-            const response = await fetch("http://localhost/api/news", {
+            const response = await fetch(`${API_URL}/api/news`, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -81,7 +81,7 @@ function CreateNews() {
         }
     
         try {
-            const response = await fetch("http://localhost/api/news", {
+            const response = await fetch(`${API_URL}/api/news`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -110,7 +110,7 @@ function CreateNews() {
         }
 
         try {
-            const response = await fetch(`http://localhost/api/news/${newsId}`, {
+            const response = await fetch(`${API_URL}/api/news/${newsId}`, {
                 method: "DELETE",
                 headers: { Authorization: `Bearer ${token}` },
             });

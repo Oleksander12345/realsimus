@@ -15,6 +15,7 @@ function Long() {
     const [balance, setBalance] = useState(null);
     const [markup, setMarkup] = useState(0);
     const token = localStorage.getItem("token");
+
     const [showNumbers, setShowNumbers] = useState(false);
 
     const handleViewNumbers = () => {
@@ -25,11 +26,11 @@ function Long() {
     useEffect(() => {
         fetchLongTermMdnData();
     }, []);
-    
 
+    const API_URL = process.env.REACT_APP_API_URL;
     const fetchMarkup = async () => {
         try {
-            const response = await fetch("http://localhost/admin/markup", {
+            const response = await fetch(`${API_URL}/admin/markup`, {
                 method: "GET",
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -53,7 +54,7 @@ function Long() {
 
     const fetchUserBalance = async () => {
         try {
-            const response = await fetch("http://localhost/api/auth/profile", {
+            const response = await fetch(`${API_URL}/api/auth/profile`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -91,7 +92,7 @@ function Long() {
             console.log("🔹 Service:", selectedService);
             console.log("🔹 Final price (already with markup):", selectedPrice);
     
-            const response = await fetch("http://localhost/api/phone-numbers/purchase", {
+            const response = await fetch(`${API_URL}/api/phone-numbers/purchase`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -137,7 +138,7 @@ function Long() {
     };
     const fetchServices = async () => {
         try {
-            const response = await fetch("http://localhost/api/proxy/services", {
+            const response = await fetch(`${API_URL}/api/proxy/services`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -171,7 +172,7 @@ function Long() {
 
     const fetchLongTermMdnData = async () => {
         try {
-            const response = await fetch("http://localhost/api/phone-numbers/long-term-mdn", {
+            const response = await fetch(`${API_URL}/api/phone-numbers/long-term-mdn`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -209,7 +210,7 @@ function Long() {
         }
     
         try {  
-            const response = await fetch(`http://localhost/api/phone-numbers/activate?mdn=${selectedNumber}`, {
+            const response = await fetch(`${API_URL}/api/phone-numbers/activate?mdn=${selectedNumber}`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -235,7 +236,7 @@ function Long() {
     };
     const checkPhoneNumberStatus = async (phoneNumber) => {
         try {
-            const response = await fetch(`http://localhost/api/phone-numbers/status?mdn=${phoneNumber}`, {
+            const response = await fetch(`${API_URL}/api/phone-numbers/status?mdn=${phoneNumber}`, {
                 method: "GET",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -266,7 +267,7 @@ function Long() {
         }
     
         try {    
-            const response = await fetch("http://localhost/api/sms/messages", {
+            const response = await fetch(`${API_URL}/api/sms/messages`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,
@@ -298,7 +299,7 @@ function Long() {
         const username = localStorage.getItem("username");
     
         try {
-            const response = await fetch("http://localhost/api/phone-numbers/return", {
+            const response = await fetch(`${API_URL}/api/phone-numbers/return`, {
                 method: "POST",
                 headers: {
                     Authorization: `Bearer ${token}`,

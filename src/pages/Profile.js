@@ -13,7 +13,9 @@ function Profile() {
   const [message, setMessage] = useState("");
   const [roles, setRole] = useState(null);
 
+
   const token = localStorage.getItem("token");
+  const API_URL = process.env.REACT_APP_API_URL;
   useEffect(() => {
     fetchUserProfile();
     fetchUserPhoneNumbers();
@@ -43,7 +45,7 @@ function Profile() {
 
   const fetchUserProfile = async () => {
     try {
-      const response = await fetch("http://localhost/api/auth/profile", {
+      const response = await fetch(`${API_URL}/api/auth/profile`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -66,7 +68,7 @@ function Profile() {
 
   const fetchUserPhoneNumbers = async () => {
     try {
-      const response = await fetch("http://localhost/api/auth/my-phone-numbers", {
+      const response = await fetch(`${API_URL}/api/auth/my-phone-numbers`, {
         method: "GET",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -93,7 +95,7 @@ function Profile() {
             return;
         }
 
-        const apiUrl = `http://localhost/api/cryptocloud/payments/user-transactions?username=${username}`;
+        const apiUrl = `${API_URL}/api/auth/user-transaction/${username}`;
 
         const response = await fetch(apiUrl, {
             method: "GET",
@@ -130,7 +132,7 @@ function Profile() {
     }
 
     try {
-      const response = await fetch("http://localhost/admin/transfer-number", {
+      const response = await fetch(`${API_URL}/admin/transfer-number`, {
         method: "PUT",
         headers: {
           Authorization: `Bearer ${token}`,

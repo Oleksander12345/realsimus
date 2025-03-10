@@ -12,6 +12,7 @@ function UpdatePassword() {
     const [confirmPassword, setConfirmPassword] = useState("");
     const [message, setMessage] = useState("");
     const [messageType, setMessageType] = useState("");
+    const API_URL = process.env.REACT_APP_API_URL;
 
     const handlePasswordReset = async (e) => {
         e.preventDefault();
@@ -27,7 +28,7 @@ function UpdatePassword() {
         }
 
         try {
-            const response = await fetch("http://localhost/api/auth/password-update", {
+            const response = await fetch(`${API_URL}/api/auth/password-update`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, newPassword, token: resetToken }),
