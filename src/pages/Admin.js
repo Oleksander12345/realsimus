@@ -106,7 +106,7 @@ function AdminPanel() {
     };
 
     const fetchMarkup = (token) => {
-        const url = `${API_URL}/admin/markup`;
+        const url = `${API_URL}/api/admin/markup`;
 
         fetch(url, {
             method: "GET",
